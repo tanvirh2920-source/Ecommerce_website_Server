@@ -1,14 +1,26 @@
 import dotenv from "dotenv";
-// Load local config.env for development. On Render, env vars are injected
-// directly by the platform — dotenv will find no file and silently skip it,
-// which is the correct behaviour (Render's vars are already in process.env).
-dotenv.config({ path: "./config/config.env" });
+// In development, load from config/config.env.
+// On Render, this file doesn't exist (it's gitignored) — dotenv will silently
+// skip it and all env vars come from Render's own environment injection instead.
+// dotenv v17 logs "injecting env (0)" when the file is missing — that is expected.
+dotenv.config({ path: "./config/config.env", quiet: true });
 import app from "./app.js";
 
 const PORT = process.env.PORT || 4000;
 
 const server = app.listen(PORT, () => {
   console.log(`🚀 Server is running on port ${PORT}`);
+
+  // Confirm critical env vars are present — if any are missing the value will
+  // show as "undefined" in logs and you'll know exactly what to add on Render.
+  console.log("🔍 Env check →", {
+    SMTP_MAIL: process.env.SMTP_MAIL || "❌ NOT SET",
+    SMTP_PASSWORD: process.env.SMTP_PASSWORD ? "✅ set" : "❌ NOT SET",
+    DB_HOST: process.env.DB_HOST || "❌ NOT SET",
+    FRONTEND_URL: process.env.FRONTEND_URL || "❌ NOT SET",
+    DASHBOARD_URL: process.env.DASHBOARD_URL || "❌ NOT SET",
+    BACKEND_URL: process.env.BACKEND_URL || "❌ NOT SET",
+  });
 
   // Keep-alive ping: Render free tier spins down after 15 min of inactivity,
   // causing 30-60s cold starts. Pinging our own health endpoint every 10 min
