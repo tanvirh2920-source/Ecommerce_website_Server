@@ -1,24 +1,23 @@
 import nodeMailer from "nodemailer";
 
 /**
- * Singleton pooled transporter — created once at module load, reused for
- * every email. Avoids the TCP + TLS handshake overhead on every OTP request.
- * `pool: true` keeps connections warm between sends.
+ * Singleton transporter — created once at module load, reused for every email.
+ *
+ * Gmail-specific notes:
+ * - Do NOT mix `service` with `host`/`port` — nodemailer's built-in Gmail
+ *   preset already sets the correct host, port, and TLS settings. Overriding
+ *   them causes connection conflicts and silent timeouts.
+ * - `pool: true` with Gmail causes OAuth/App-Password auth to hang on Render's
+ *   network because Gmail closes idle pooled connections aggressively. Use the
+ *   default non-pooled mode instead — nodemailer reuses the connection within
+ *   a single send and closes it cleanly after.
  */
 const transporter = nodeMailer.createTransport({
-  service: process.env.SMTP_SERVICE,
-  host: process.env.SMTP_HOST,
-  port: Number(process.env.SMTP_PORT),
-  secure: true,
+  service: "gmail",
   auth: {
     user: process.env.SMTP_MAIL,
     pass: process.env.SMTP_PASSWORD,
   },
-  pool: true,          // reuse connections instead of opening a new one per email
-  maxConnections: 5,   // max simultaneous SMTP connections in the pool
-  maxMessages: 100,    // recycle a connection after 100 messages to avoid stale sockets
-  rateDelta: 1000,     // sliding window in ms for rate limiting
-  rateLimit: 5,        // max emails per rateDelta window
 });
 
 /**
@@ -34,10 +33,10 @@ transporter.verify((error) => {
 });
 
 /**
- * @param {Object} options
- * @param {string} options.email     - Recipient address
- * @param {string} options.subject   - Email subject
- * @param {string} options.message   - HTML body
+ * @param {Object}  options
+ * @param {string}  options.email    - Recipient address
+ * @param {string}  options.subject  - Email subject line
+ * @param {string}  options.message  - HTML body
  */
 export const sendEmail = async ({ email, subject, message }) => {
   const mailOptions = {
