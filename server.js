@@ -1,4 +1,7 @@
 import dotenv from "dotenv";
+// Load local config.env for development. On Render, env vars are injected
+// directly by the platform — dotenv will find no file and silently skip it,
+// which is the correct behaviour (Render's vars are already in process.env).
 dotenv.config({ path: "./config/config.env" });
 import app from "./app.js";
 

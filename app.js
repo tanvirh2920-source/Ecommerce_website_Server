@@ -20,6 +20,11 @@ import contactRouter from "./router/contactRouters.js";
 
 const app = express();
 
+// Render (and most cloud platforms) sit behind a reverse proxy.
+// Without this, express-rate-limit throws ERR_ERL_UNEXPECTED_X_FORWARDED_FOR
+// on every request and the real client IP is never identified correctly.
+app.set("trust proxy", 1);
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
