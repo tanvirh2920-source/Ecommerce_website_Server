@@ -183,6 +183,38 @@ export const login = catchAsyncError(async (req, res, next) => {
   sendToken(user.rows[0], 200, "Logged in successfully", res);
 });
 
+// Admin-only login — same credentials check but enforces role = 'Admin'
+export const adminLogin = catchAsyncError(async (req, res, next) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return next(new ErrorHandler("Please provide email and password", 400));
+  }
+
+  const result = await database.query(
+    "SELECT * FROM users WHERE email = $1 AND is_verified = TRUE",
+    [email],
+  );
+
+  if (result.rows.length === 0) {
+    // Generic message — don't reveal whether email exists
+    return next(new ErrorHandler("Invalid email or password", 401));
+  }
+
+  const user = result.rows[0];
+
+  const isPassword = await bcrypt.compare(password, user.password);
+  if (!isPassword) {
+    return next(new ErrorHandler("Invalid email or password", 401));
+  }
+
+  if (user.role !== "Admin") {
+    return next(new ErrorHandler("Access denied. Admin accounts only.", 403));
+  }
+
+  sendToken(user, 200, "Admin logged in successfully", res);
+});
+
 // Get user details
 export const getUser = catchAsyncError(async (req, res, next) => {
   const { user } = req;

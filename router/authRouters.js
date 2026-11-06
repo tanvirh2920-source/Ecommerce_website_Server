@@ -4,6 +4,7 @@ import rateLimit from "express-rate-limit";
 import {
   getUser,
   login,
+  adminLogin,
   logout,
   register,
   verifyOTP,
@@ -51,6 +52,7 @@ router.post("/register", registrationLimiter, register);
 router.post("/register/verify-otp", strictAuthLimiter, verifyOTP);
 router.post("/register/resend-otp", resendOTPLimiter, resendOTP);
 router.post("/login", strictAuthLimiter, login);
+router.post("/admin/login", strictAuthLimiter, adminLogin);
 router.get("/me", isAuthenticated, getUser);
 router.get("/logout", isAuthenticated, logout);
 router.post("/password/forgot", registrationLimiter, forgotPassword);
