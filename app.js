@@ -53,6 +53,11 @@ app.use("/api/v1/returns", returnRouter);
 app.use("/api/v1/contact", contactRouter);
 app.use(errorMiddleware);
 
+// Health check — used by Render's uptime checks and the keep-alive ping
+app.get("/api/health", (req, res) => {
+  res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
+});
+
 // Fix #2: Wrap startup in a bootstrap function so unhandled rejections
 // surface cleanly and terminate the process with a useful error message.
 async function bootstrap() {
