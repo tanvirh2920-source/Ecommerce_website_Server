@@ -1,7 +1,9 @@
-import { Resend } from "resend";
+import * as Brevo from "@getbrevo/brevo";
 
-// Resend uses HTTPS API — no SMTP ports, no IPv6 issues, works on Render free tier
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Brevo (formerly Sendinblue) — 300 free emails/day, no domain required,
+// sends to any email address, uses HTTPS API (no SMTP ports blocked on Render)
+const apiInstance = new Brevo.TransactionalEmailsApi();
+apiInstance.authentications["api-key"].apiKey = process.env.BREVO_API_KEY;
 
 /**
  * @param {Object}  options
@@ -10,18 +12,17 @@ const resend = new Resend(process.env.RESEND_API_KEY);
  * @param {string}  options.message  - HTML body
  */
 export const sendEmail = async ({ email, subject, message }) => {
-  const { data, error } = await resend.emails.send({
-    from: "Daily Bazar <onboarding@resend.dev>",
-    to: email,
-    subject,
-    html: message,
-  });
+  const sendSmtpEmail = new Brevo.SendSmtpEmail();
 
-  if (error) {
-    console.error("❌ Resend email failed:", error.message);
-    throw new Error(`Failed to send email: ${error.message}`);
-  }
+  sendSmtpEmail.subject = subject;
+  sendSmtpEmail.htmlContent = message;
+  sendSmtpEmail.sender = {
+    name: "Daily Bazar",
+    email: process.env.BREVO_SENDER_EMAIL || "noreply@dailybazar.com",
+  };
+  sendSmtpEmail.to = [{ email }];
 
-  console.log(`✉️  Email sent to ${email} — id: ${data.id}`);
-  return data;
+  const result = await apiInstance.sendTransacEmail(sendSmtpEmail);
+  console.log(`✉️  Email sent to ${email} — messageId: ${result.messageId}`);
+  return result;
 };
