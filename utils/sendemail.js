@@ -13,7 +13,9 @@ import nodeMailer from "nodemailer";
  *   a single send and closes it cleanly after.
  */
 const transporter = nodeMailer.createTransport({
-  service: "gmail",
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false,   // STARTTLS — required for port 587, port 465 is blocked on Render
   auth: {
     user: process.env.SMTP_MAIL,
     pass: process.env.SMTP_PASSWORD,
