@@ -1,36 +1,27 @@
-import nodeMailer from "nodemailer";
+import { Resend } from "resend";
 
-const transporter = nodeMailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false,
-  family: 4,           // force IPv4 — Render free tier does not support IPv6
-  auth: {
-    user: process.env.SMTP_MAIL,
-    pass: process.env.SMTP_PASSWORD,
-  },
-});
+// Resend uses HTTPS API — no SMTP ports, no IPv6 issues, works on Render free tier
+const resend = new Resend(process.env.RESEND_API_KEY);
 
-setImmediate(() => {
-  transporter.verify((error) => {
-    if (error) {
-      console.error("❌ SMTP connection failed:", error.message);
-      console.error("   → Check SMTP_MAIL and SMTP_PASSWORD on Render");
-    } else {
-      console.log("✅ SMTP server is reachable and ready to send mail");
-    }
-  });
-});
-
+/**
+ * @param {Object}  options
+ * @param {string}  options.email    - Recipient address
+ * @param {string}  options.subject  - Email subject line
+ * @param {string}  options.message  - HTML body
+ */
 export const sendEmail = async ({ email, subject, message }) => {
-  const mailOptions = {
-    from: `"Daily Bazar" <${process.env.SMTP_MAIL}>`,
+  const { data, error } = await resend.emails.send({
+    from: "Daily Bazar <onboarding@resend.dev>",
     to: email,
     subject,
     html: message,
-  };
+  });
 
-  const result = await transporter.sendMail(mailOptions);
-  console.log(`✉️  Email sent to ${email} — messageId: ${result.messageId}`);
-  return result;
+  if (error) {
+    console.error("❌ Resend email failed:", error.message);
+    throw new Error(`Failed to send email: ${error.message}`);
+  }
+
+  console.log(`✉️  Email sent to ${email} — id: ${data.id}`);
+  return data;
 };
