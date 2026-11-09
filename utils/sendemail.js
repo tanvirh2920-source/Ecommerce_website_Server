@@ -1,20 +1,34 @@
-import * as Brevo from "@getbrevo/brevo";
-
-const apiInstance = new Brevo.TransactionalEmailsApi();
-apiInstance.authentications["api-key"].apiKey = process.env.BREVO_API_KEY;
-
+/**
+ * Brevo (Sendinblue) Transactional Email via REST API
+ * No SDK — plain fetch call to HTTPS endpoint.
+ * Works on Render free tier, sends to any email, 300/day free.
+ */
 export const sendEmail = async ({ email, subject, message }) => {
-  const sendSmtpEmail = new Brevo.SendSmtpEmail();
+  const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+    method: "POST",
+    headers: {
+      "accept": "application/json",
+      "api-key": process.env.BREVO_API_KEY,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({
+      sender: {
+        name: "Daily Bazar",
+        email: process.env.BREVO_SENDER_EMAIL,
+      },
+      to: [{ email }],
+      subject,
+      htmlContent: message,
+    }),
+  });
 
-  sendSmtpEmail.subject = subject;
-  sendSmtpEmail.htmlContent = message;
-  sendSmtpEmail.sender = {
-    name: "Daily Bazar",
-    email: process.env.BREVO_SENDER_EMAIL,
-  };
-  sendSmtpEmail.to = [{ email }];
+  if (!response.ok) {
+    const err = await response.json();
+    console.error("❌ Brevo email failed:", err.message);
+    throw new Error(`Failed to send email: ${err.message}`);
+  }
 
-  const result = await apiInstance.sendTransacEmail(sendSmtpEmail);
-  console.log(`✉️  Email sent to ${email} — messageId: ${result.messageId}`);
-  return result;
+  const data = await response.json();
+  console.log(`✉️  Email sent to ${email} — messageId: ${data.messageId}`);
+  return data;
 };
