@@ -16,6 +16,8 @@ const server = app.listen(PORT, () => {
   console.log("🔍 Env check →", {
     SMTP_MAIL: process.env.SMTP_MAIL || "❌ NOT SET",
     SMTP_PASSWORD: process.env.SMTP_PASSWORD ? "✅ set" : "❌ NOT SET",
+    BREVO_API_KEY: process.env.BREVO_API_KEY ? "✅ set" : "❌ NOT SET",
+    BREVO_SENDER_EMAIL: process.env.BREVO_SENDER_EMAIL || "❌ NOT SET",
     DB_HOST: process.env.DB_HOST || "❌ NOT SET",
     FRONTEND_URL: process.env.FRONTEND_URL || "❌ NOT SET",
     DASHBOARD_URL: process.env.DASHBOARD_URL || "❌ NOT SET",
