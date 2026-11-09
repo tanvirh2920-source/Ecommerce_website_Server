@@ -4,6 +4,7 @@ const transporter = nodeMailer.createTransport({
   host: "smtp.gmail.com",
   port: 587,
   secure: false,
+  family: 4,           // force IPv4 — Render free tier does not support IPv6
   auth: {
     user: process.env.SMTP_MAIL,
     pass: process.env.SMTP_PASSWORD,
