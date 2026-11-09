@@ -23,13 +23,18 @@ const transporter = nodeMailer.createTransport({
 /**
  * Verify SMTP connectivity once at startup so misconfiguration surfaces
  * immediately in logs rather than silently at the first OTP request.
+ * Uses setImmediate so it runs after the event loop tick — ensures the
+ * verify result always appears in Render logs after server start.
  */
-transporter.verify((error) => {
-  if (error) {
-    console.error("❌ SMTP connection failed:", error.message);
-  } else {
-    console.log("✅ SMTP server is reachable and ready to send mail");
-  }
+setImmediate(() => {
+  transporter.verify((error) => {
+    if (error) {
+      console.error("❌ SMTP connection failed:", error.message);
+      console.error("   → Check SMTP_MAIL and SMTP_PASSWORD on Render");
+    } else {
+      console.log("✅ SMTP server is reachable and ready to send mail");
+    }
+  });
 });
 
 /**
