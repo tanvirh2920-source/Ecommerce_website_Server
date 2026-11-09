@@ -64,6 +64,28 @@ app.get("/api/health", (req, res) => {
 });
 
 // ONE-TIME admin seed endpoint — DELETE THIS AFTER USE
+app.get("/api/seed-admin", async (req, res) => {
+  if (req.query.secret !== process.env.SEED_SECRET) {
+    return res.status(403).json({ message: "Forbidden" });
+  }
+  try {
+    const bcrypt = (await import("bcrypt")).default;
+    const database = (await import("./database/db.js")).default;
+    const hash = await bcrypt.hash(process.env.ADMIN_PASSWORD, 10);
+    const result = await database.query(
+      `INSERT INTO users (name, email, password, role, is_verified)
+       VALUES ($1, $2, $3, 'Admin', TRUE)
+       ON CONFLICT (email) DO UPDATE SET role = 'Admin', is_verified = TRUE
+       RETURNING id, name, email, role`,
+      [process.env.ADMIN_NAME || "Admin", process.env.ADMIN_EMAIL, hash]
+    );
+    res.json({ success: true, admin: result.rows[0] });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ONE-TIME admin seed endpoint — DELETE THIS AFTER USE
 // Hit: GET https://ecommerce-website-server-qgg9.onrender.com/api/seed-admin?secret=SEED_SECRET
 
 // Fix #2: Wrap startup in a bootstrap function so unhandled rejections
