@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "@getbrevo/brevo": "6.2.0",
+    "@getbrevo/brevo": "2.2.0",
     "bcrypt": "^6.0.0",
     "cloudinary": "^2.9.0",
     "cookie-parser": "^1.4.7",

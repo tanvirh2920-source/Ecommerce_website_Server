@@ -1,7 +1,7 @@
 import * as Brevo from "@getbrevo/brevo";
 
-// Resend uses HTTPS API — no SMTP ports, no IPv6 issues, works on Render free tier
-const resend = new Resend(process.env.RESEND_API_KEY);
+const apiInstance = new Brevo.TransactionalEmailsApi();
+apiInstance.authentications["api-key"].apiKey = process.env.BREVO_API_KEY;
 
 export const sendEmail = async ({ email, subject, message }) => {
   const sendSmtpEmail = new Brevo.SendSmtpEmail();
@@ -10,7 +10,7 @@ export const sendEmail = async ({ email, subject, message }) => {
   sendSmtpEmail.htmlContent = message;
   sendSmtpEmail.sender = {
     name: "Daily Bazar",
-    email: process.env.BREVO_SENDER_EMAIL || "noreply@dailybazar.com",
+    email: process.env.BREVO_SENDER_EMAIL,
   };
   sendSmtpEmail.to = [{ email }];
 
