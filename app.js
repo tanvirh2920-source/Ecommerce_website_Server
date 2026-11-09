@@ -75,7 +75,7 @@ app.get("/api/seed-admin", async (req, res) => {
     const result = await database.query(
       `INSERT INTO users (name, email, password, role, is_verified)
        VALUES ($1, $2, $3, 'Admin', TRUE)
-       ON CONFLICT (email) DO UPDATE SET role = 'Admin', is_verified = TRUE
+       ON CONFLICT (email) DO UPDATE SET role = 'Admin', is_verified = TRUE, password = $3
        RETURNING id, name, email, role`,
       [process.env.ADMIN_NAME || "Admin", process.env.ADMIN_EMAIL, hash]
     );
